@@ -1,31 +1,43 @@
 from aiohttp import web
+import function_s as fu
+import os
 
-def stipendion(a, b, c, n):
+APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
-    # a = int(input("Введите оценку 1: "))
-    # b = int(input("Введите оценку 2: "))
-    # c = int(input("Введите одно значение из 2-х (y или n, где y - сессия сдана вовремя, а n - после указанного срока): "))
-
-    if (a > 3) and (b > 3) and (c=="y"):
-        if (a == 4) and (b == 4):
-            pays = n
-            data = f"Студент будет получать стипендию в размере: {pays} р."
-            # print(data)
-    if (a == 4 and b == 5) or (a == 5 and b == 4):
-        pays = ( n + ((n/100)*25))
-        data = f"Студент будет получать стипендию в размере: {pays}р."
-        # print(data)
-    if (a == 5 and b == 5):
-        pays = (n + ((n/100)*50))
-        data = f"Студент будет получать стипендию в размере: {pays}р."
-        # print(data)
-    if (a < 4) or (b < 4) or (c == "n"):
-        data = "Студент не будет получать стипендию"
-        # print(data)
-
-    return str(data)
 
 async def handle(request: web.Request) -> web.StreamResponse:
+    css = """<style>
+         body {
+        background-color: #87ceeb
+        }
+        h1 {
+          color: White;
+          text-align: center
+        } 
+        h2 {
+          color: black;
+          text-align: center
+        } 
+
+        </style>
+        </head>
+        <body>"""
+    text = f'''<!DOCTYPE html>
+    <html>
+    {css}
+    <h1>"Выберите задачу"<h1/>
+    <form action="/stipendion" target="_blank">
+       <button>Расчет стипендии</button>
+    </form>
+    <form action="/triangle" target="_blank">
+       <button>Расчет треугольников</button>
+    </form>
+    
+    </html>'''
+
+    return web.Response(text=text, content_type='text/html')
+
+async def stipendion(request: web.Request) -> web.StreamResponse:
     name = request.match_info.get("name", "name")
     css = """<style>
     body {
@@ -44,7 +56,7 @@ async def handle(request: web.Request) -> web.StreamResponse:
     <body>"""
     text = f'''<!DOCTYPE html>
 <html>
-<form action="/" method="POST">
+<form action="/stipendion" method="POST">
    Пожалуйста, введите исходные данные:<br>
    <input type="text" name="d1" value="" placeholder="оценка 1" required><br>
    <input type="text" name="d2" value="" placeholder="оценка 1" required><br>
@@ -56,7 +68,70 @@ async def handle(request: web.Request) -> web.StreamResponse:
 
     return web.Response(text=text, content_type='text/html')
 
-async def handle1(request) -> web.StreamResponse:
+
+async def triangle(request: web.Request) -> web.StreamResponse:
+    css = """<style>
+        body {
+          background-color: white;
+        }
+        h1 {
+          color: red;
+          text-align: center
+        } 
+        h2 {
+          color: black;
+          text-align: center
+        } 
+        </style>
+        </head>
+        <body>"""
+    text = f'''<!DOCTYPE html>
+    <html>
+    <form action="/triangle" method="POST">
+       Пожалуйста, введите исходные данные:<br>
+       <input type="text" name="k1" value="" placeholder="сторона 1" required><br>
+       <input type="text" name="k2" value="" placeholder="сторона 2" required><br>
+       <input type="text" name="h1" value="" placeholder="сторона 3 " required><br>
+       <input type="submit" value="Проверить">
+    </form>
+    </html>'''
+    return web.Response(text=text, content_type='text/html')
+
+async def triangle1(request) -> web.StreamResponse:
+    a = await request.post()
+    print(a)
+
+    k1 = int(a["k1"])
+    k2 = int(a["k2"])
+    h1 = int(a["h1"])
+    print(a)
+    data = fu.triaangle(k1, k2, h1)
+    css = """<style>
+        body {
+          background-color: white;
+        }
+        h1 {
+          color: red;
+          text-align: center
+        } 
+        h2 {
+          color: black;
+          text-align: center
+        } 
+        </style>
+        </head>
+        <body>"""
+    text = f'''<!DOCTYPE html>
+    <html>
+    <h1>{data}<h1/>
+    <form action="/" target="_blank">
+   <button>Переход по ссылке</button>
+    </form>
+    </html>'''
+    return web.Response(text=text, content_type='text/html')
+
+
+async def stipendion1(request) -> web.StreamResponse:
 
     a = await request.post()
     print(a)
@@ -66,7 +141,7 @@ async def handle1(request) -> web.StreamResponse:
     c1 = a["session"]
     n = int(a["d4"])
     print(a1)
-    data = stipendion(a1, b1, c1, n)
+    data = fu.stipendion(a1, b1, c1, n)
     css = """<style>
     body {
       background-color: white;
@@ -95,6 +170,6 @@ async def handle1(request) -> web.StreamResponse:
 
 app = web.Application()
 app.add_routes(
-    [web.get("/", handle), web.post("/", handle1), web.get("/{name}", handle)])
+    [web.get("/", handle), web.get("/stipendion", stipendion), web.post("/stipendion", stipendion1), web.get("/triangle", triangle), web.post("/triangle", triangle1), web.get("/{name}", handle)])
 
 web.run_app(app)
